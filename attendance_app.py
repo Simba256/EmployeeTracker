@@ -51,6 +51,10 @@ def extract_clock_times(clock_in_out_time, clock_out_column):
     
     # If there's only one time, treat it as check-in
     if len(normalized_times) == 1:
+        # if it's between 02:00 and 18:00, return None for check-in
+        if datetime.strptime(first_original, '%H:%M').time() >= datetime.strptime('02:00', '%H:%M').time() and \
+           datetime.strptime(first_original, '%H:%M').time() <= datetime.strptime('18:00', '%H:%M').time():
+            return None, first_original
         return first_original, None
     
     # Check if check-in and check-out are within 1 hour of each other
