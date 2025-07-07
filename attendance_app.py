@@ -267,8 +267,8 @@ def main():
                 records_with_clock_out = df_processed['Clock Out'].notna().sum()
                 st.metric("Records with Clock Out", records_with_clock_out)
             with col4:
-                # Get total working days from summary (it's the same for all employees)
-                total_working_days = df_summary['Total Working Days'].iloc[0] if not df_summary.empty else 0
+                # Calculate total working days (days when any employee checked in)
+                total_working_days = len(df_processed[df_processed['Clock In'].notna()]['Date'].dt.date.unique()) if not df_processed.empty else 0
                 st.metric("Total Working Days", total_working_days)
             
             # Create tabs for different views
