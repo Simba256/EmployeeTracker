@@ -70,12 +70,12 @@ def extract_clock_times(clock_in_out_time, clock_out_column):
                 # Convert to hour for comparison
                 first_hour = datetime.strptime(first_original, '%H:%M').time()
                 
-                # If time <= 02:00, keep only check-in
-                if first_hour <= datetime.strptime('02:00', '%H:%M').time():
-                    return first_original, None
-                # If time > 02:00, keep only check-out
-                else:
+                # If time is between 02:00 and 18:00, keep only check-out
+                if datetime.strptime('02:00', '%H:%M').time() <= first_hour <= datetime.strptime('18:00', '%H:%M').time():
                     return None, last_original
+                # If time is outside 02:00-18:00 range (18:01-01:59), keep only check-in
+                else:
+                    return first_original, None
         except:
             pass
     
