@@ -115,13 +115,11 @@ def generate_employee_summary(df):
     
     summary_data = []
     
-    for employee in df.groupby(['Emp No.', 'AC-No.', 'Name']):
+    for employee in df.groupby('Name'):
+        name = employee[0]
         emp_data = employee[1]
         
         # Basic info
-        emp_no = emp_data['Emp No.'].iloc[0]
-        ac_no = emp_data['AC-No.'].iloc[0]
-        name = emp_data['Name'].iloc[0]
         month = emp_data['Month'].iloc[0]
         
         # Count check-ins and check-outs
@@ -191,8 +189,6 @@ def generate_employee_summary(df):
         net_overtime = total_overtime - total_undertime
         
         summary_data.append({
-            'Emp No.': emp_no,
-            'AC-No.': ac_no,
             'Name': name,
             'Month': month,
             'Total Check-ins': total_checkins,
