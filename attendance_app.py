@@ -209,20 +209,54 @@ def generate_employee_summary(df):
 
 def process_attendance_file(uploaded_file):
     try:
-        # Read Excel file
-        df = pd.read_excel(uploaded_file)
+        # Read Excel file - handle both .xlsx and .xls formats
+        if uploaded_file.name.endswith('.xls'):
+            try:
+                df = pd.read_excel(uploaded_file, engine='xlrd')
+            except ImportError:
+                return None, None, "Missing dependency: xlrd is required for .xls files. Please run: pip install xlrd==2.0.1"
+            except Exception as e:
+                return None, None, f"Error reading .xls file with xlrd engine: {str(e)}"
+        else:
+            df = pd.read_excel(uploaded_file)
         
         # Extract clock times
         df[['Extracted_Clock_In', 'Extracted_Clock_Out']] = df.apply(
             lambda row: pd.Series(extract_clock_times(row['Clock-in/out Time'], row['Clock Out'])), axis=1
         )
         
-        # Select required columns
-        columns_to_keep = ['Emp No.', 'AC-No.', 'Name', 'Date', 'Extracted_Clock_In', 'Extracted_Clock_Out']
+        # Handle different column structures
+        columns_to_keep = []
+        final_columns = []
+        
+        # Check for employee number column
+        if 'Emp No.' in df.columns:
+            columns_to_keep.append('Emp No.')
+            final_columns.append('Emp No.')
+        else:
+            # Create a default employee number if missing
+            df['Emp No.'] = range(1, len(df) + 1)
+            columns_to_keep.append('Emp No.')
+            final_columns.append('Emp No.')
+        
+        # Check for AC number column
+        if 'AC-No.' in df.columns:
+            columns_to_keep.append('AC-No.')
+            final_columns.append('AC-No.')
+        else:
+            # Create a default AC number if missing
+            df['AC-No.'] = range(1000, 1000 + len(df))
+            columns_to_keep.append('AC-No.')
+            final_columns.append('AC-No.')
+        
+        # Add required columns
+        columns_to_keep.extend(['Name', 'Date', 'Extracted_Clock_In', 'Extracted_Clock_Out'])
+        final_columns.extend(['Name', 'Date', 'Clock In', 'Clock Out'])
+        
         df_cleaned = df[columns_to_keep].copy()
         
         # Rename columns
-        df_cleaned.columns = ['Emp No.', 'AC-No.', 'Name', 'Date', 'Clock In', 'Clock Out']
+        df_cleaned.columns = final_columns
         
         # Filter out rows with no clock in or clock out
         df_filtered = df_cleaned.dropna(subset=['Clock In', 'Clock Out'], how='all')
